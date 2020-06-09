@@ -46,7 +46,7 @@ export class ShippingEligibilityChecker<
 
     constructor(config: ShippingEligibilityCheckerConfig<T>) {
         super(config);
-        this.checkFn = config.check;
+        this.checkFn = config.check.bind(this);
     }
 
     /**

@@ -166,12 +166,12 @@ export class ConfigurableOperationDef<T extends ConfigArgs<ConfigArgType>> {
 
     async init(injector: Injector) {
         if (typeof this.options.init === 'function') {
-            await this.options.init(injector);
+            await this.options.init.call(this, injector);
         }
     }
     async destroy() {
         if (typeof this.options.destroy === 'function') {
-            await this.options.destroy();
+            await this.options.destroy.call(this);
         }
     }
 }
@@ -221,9 +221,9 @@ function localizeConfig(
 }
 
 function localizeString(stringArray: LocalizedStringArray, languageCode: LanguageCode): string {
-    let match = stringArray.find(x => x.languageCode === languageCode);
+    let match = stringArray.find((x) => x.languageCode === languageCode);
     if (!match) {
-        match = stringArray.find(x => x.languageCode === DEFAULT_LANGUAGE_CODE);
+        match = stringArray.find((x) => x.languageCode === DEFAULT_LANGUAGE_CODE);
     }
     if (!match) {
         match = stringArray[0];

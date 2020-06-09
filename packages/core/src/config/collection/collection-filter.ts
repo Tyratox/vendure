@@ -24,6 +24,7 @@ export interface CollectionFilterConfig<T extends CollectionFilterArgs>
     apply: ApplyCollectionFilterFn<T>;
 }
 
+/* tslint:disable:max-line-length */
 /**
  * @description
  * A CollectionFilter defines a rule which can be used to associate ProductVariants with a Collection.
@@ -35,12 +36,13 @@ export interface CollectionFilterConfig<T extends CollectionFilterArgs>
  *
  * @docsCategory configuration
  */
+/* tslint:enable:max-line-length*/
 export class CollectionFilter<T extends CollectionFilterArgs = {}> extends ConfigurableOperationDef<T> {
     private readonly applyFn: ApplyCollectionFilterFn<T>;
 
     constructor(config: CollectionFilterConfig<T>) {
         super(config);
-        this.applyFn = config.apply;
+        this.applyFn = config.apply.bind(this);
     }
 
     apply(qb: SelectQueryBuilder<ProductVariant>, args: ConfigArg[]): SelectQueryBuilder<ProductVariant> {

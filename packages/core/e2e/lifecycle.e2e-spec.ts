@@ -2,49 +2,58 @@ import {
     AutoIncrementIdStrategy,
     defaultShippingEligibilityChecker,
     Injector,
+    Order,
     ProductService,
     ShippingEligibilityChecker,
 } from '@vendure/core';
 import { createTestEnvironment } from '@vendure/testing';
 import path from 'path';
+import { Connection } from 'typeorm';
 
 import { initialData } from '../../../e2e-common/e2e-initial-data';
-import { testConfig, TEST_SETUP_TIMEOUT_MS } from '../../../e2e-common/test-config';
+import { TEST_SETUP_TIMEOUT_MS, testConfig } from '../../../e2e-common/test-config';
 
 const strategyInitSpy = jest.fn();
 const strategyDestroySpy = jest.fn();
 const codInitSpy = jest.fn();
+const codCheckSpy = jest.fn();
 const codDestroySpy = jest.fn();
 
 class TestIdStrategy extends AutoIncrementIdStrategy {
     async init(injector: Injector) {
         const productService = injector.get(ProductService);
         const connection = injector.getConnection();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         strategyInitSpy(productService.constructor.name, connection.name);
     }
 
     async destroy() {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         strategyDestroySpy();
     }
 }
 
-const testShippingEligChecker = new ShippingEligibilityChecker({
+class ConnectedShippingEligibilityChecker extends ShippingEligibilityChecker {
+    connection: Connection;
+    productService: ProductService;
+}
+
+const testShippingEligChecker = new ConnectedShippingEligibilityChecker({
     code: 'test',
     args: {},
     description: [],
-    init: async injector => {
-        const productService = injector.get(ProductService);
-        const connection = injector.getConnection();
-        await new Promise(resolve => setTimeout(resolve, 100));
-        codInitSpy(productService.constructor.name, connection.name);
+    async init(this: ConnectedShippingEligibilityChecker, injector) {
+        this.productService = injector.get(ProductService);
+        this.connection = injector.getConnection();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        codInitSpy(this.productService.constructor.name, this.connection.name);
     },
-    destroy: async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    async destroy() {
+        await new Promise((resolve) => setTimeout(resolve, 100));
         codDestroySpy();
     },
-    check: order => {
+    check(this: ConnectedShippingEligibilityChecker, order) {
+        codCheckSpy(this.productService.constructor.name, this.connection.name);
         return true;
     },
 });
@@ -83,12 +92,19 @@ describe('lifecycle hooks for configurable objects', () => {
     describe('configurable operation', () => {
         beforeAll(async () => {
             await server.bootstrap();
+            testShippingEligChecker.check(new Order({}), []);
         });
 
         it('runs init with Injector', () => {
             expect(codInitSpy).toHaveBeenCalled();
             expect(codInitSpy.mock.calls[0][0]).toEqual('ProductService');
             expect(codInitSpy.mock.calls[0][1]).toBe('default');
+        });
+
+        it('runs check with injected values on this', () => {
+            expect(codCheckSpy).toHaveBeenCalled();
+            expect(codCheckSpy.mock.calls[0][0]).toEqual('ProductService');
+            expect(codCheckSpy.mock.calls[0][1]).toBe('default');
         });
 
         it('runs destroy', async () => {

@@ -71,7 +71,7 @@ export class PromotionCondition<T extends PromotionConditionArgs = {}> extends C
 
     constructor(config: PromotionConditionConfig<T>) {
         super(config);
-        this.checkFn = config.check;
+        this.checkFn = config.check.bind(this);
         this.priorityValue = config.priorityValue || 0;
     }
 

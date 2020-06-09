@@ -237,11 +237,11 @@ export class PaymentMethodHandler<
 
     constructor(config: PaymentMethodConfigOptions<T>) {
         super(config);
-        this.createPaymentFn = config.createPayment;
-        this.settlePaymentFn = config.settlePayment;
-        this.settlePaymentFn = config.settlePayment;
-        this.createRefundFn = config.createRefund;
-        this.onTransitionStartFn = config.onStateTransitionStart;
+        this.createPaymentFn = config.createPayment.bind(this);
+        this.settlePaymentFn = config.settlePayment.bind(this);
+        this.settlePaymentFn = config.settlePayment.bind(this);
+        this.createRefundFn = config.createRefund && config.createRefund.bind(this);
+        this.onTransitionStartFn = config.onStateTransitionStart && config.onStateTransitionStart.bind(this);
     }
 
     /**

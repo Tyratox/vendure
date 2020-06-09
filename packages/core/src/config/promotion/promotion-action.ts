@@ -121,7 +121,7 @@ export class PromotionItemAction<T extends PromotionActionArgs = {}> extends Pro
     private readonly executeFn: ExecutePromotionItemActionFn<T>;
     constructor(config: PromotionItemActionConfig<T>) {
         super(config);
-        this.executeFn = config.execute;
+        this.executeFn = config.execute.bind(this);
     }
 
     /** @internal */

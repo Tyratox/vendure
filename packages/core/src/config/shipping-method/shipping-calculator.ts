@@ -47,7 +47,7 @@ export class ShippingCalculator<T extends ShippingCalculatorArgs = {}> extends C
 
     constructor(config: ShippingCalculatorConfig<T>) {
         super(config);
-        this.calculateFn = config.calculate;
+        this.calculateFn = config.calculate.bind(this);
     }
 
     /**
